@@ -12,15 +12,27 @@
 queue_t *q_new()
 {
     queue_t *q = malloc(sizeof(queue_t));
-    /* TODO: What if malloc returned NULL? */
+    // when allocation failed return NULL
+    if (q == NULL)
+        return NULL;
     q->head = NULL;
+    q->tail = NULL;
+    q->size = 0;
     return q;
 }
 
 /* Free all storage used by queue */
 void q_free(queue_t *q)
 {
-    /* TODO: How about freeing the list elements and the strings? */
+    // free iterated through lists
+    if (q != NULL) {
+        for (list_ele_t *it = q->head; it != NULL;) {
+            free(it->value);             // free string
+            list_ele_t *tmp = it->next;  // save pointer for next node
+            free(it);
+            it = tmp;
+        }
+    }
     /* Free queue structure */
     free(q);
 }
@@ -35,12 +47,32 @@ void q_free(queue_t *q)
 bool q_insert_head(queue_t *q, char *s)
 {
     list_ele_t *newh;
-    /* TODO: What should you do if the q is NULL? */
+    // when q is NULL return false
+    if (q == NULL)
+        return false;
     newh = malloc(sizeof(list_ele_t));
-    /* Don't forget to allocate space for the string and copy it */
-    /* What if either call to malloc returns NULL? */
+    // return false if malloc failed
+    if (newh == NULL)
+        return false;
+    // copy string content
+    size_t len = strlen(s) +
+                 1;  // count in additional space for c string null terminator
+    // malloc string space
+    newh->value = malloc(len);
+    if (newh->value == NULL) {  // when malloc for string failed
+        // prevent memory leak on failed memory allocation
+        free(newh);
+        return false;
+    }
+    // copy string content
+    strncpy(newh->value, s, len);
     newh->next = q->head;
     q->head = newh;
+    // correctly initialize tail when is NULL
+    if (q->tail == NULL)
+        q->tail = q->head;
+    // maintain size
+    ++(q->size);
     return true;
 }
 
@@ -53,9 +85,37 @@ bool q_insert_head(queue_t *q, char *s)
  */
 bool q_insert_tail(queue_t *q, char *s)
 {
-    /* TODO: You need to write the complete code for this function */
-    /* Remember: It should operate in O(1) time */
-    /* TODO: Remove the above comment when you are about to implement. */
+    list_ele_t *newh;
+    // when q is NULL return false
+    if (q == NULL)
+        return false;
+    newh = malloc(sizeof(list_ele_t));
+    // return false if malloc failed
+    if (newh == NULL)
+        return false;
+    // copy string content
+    size_t len = strlen(s) +
+                 1;  // count in additional space for c string null terminator
+    // malloc string space
+    newh->value = malloc(len);
+    if (newh->value == NULL) {  // when malloc for string failed
+        // prevent memory leak on failed memory allocation
+        free(newh);
+        return false;
+    }
+    // copy string content
+    strncpy(newh->value, s, len);
+    // concat to existed list
+    // prevent empty list
+    if (q->tail != NULL) {
+        q->tail->next = newh;
+    } else {  // is the first element in list
+        q->head = newh;
+    }
+    // set tail
+    q->tail = newh;
+    // maintain size
+    ++(q->size);
     return false;
 }
 
@@ -81,10 +141,9 @@ bool q_remove_head(queue_t *q, char *sp, size_t bufsize)
  */
 int q_size(queue_t *q)
 {
-    /* TODO: You need to write the code for this function */
-    /* Remember: It should operate in O(1) time */
-    /* TODO: Remove the above comment when you are about to implement. */
-    return 0;
+    if (q == NULL)
+        return 0;
+    return q->size;
 }
 
 /*
@@ -109,4 +168,5 @@ void q_sort(queue_t *q)
 {
     /* TODO: You need to write the code for this function */
     /* TODO: Remove the above comment when you are about to implement. */
+    // PLAN: Use Merge sort implementation
 }
