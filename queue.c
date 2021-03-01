@@ -5,6 +5,36 @@
 #include "harness.h"
 #include "queue.h"
 
+// helper functions
+/*
+ * Create New Node
+ * Return false if malloc failed
+ * Otherwise return true
+ */
+static bool ele_create(list_ele_t **newh, char *s)
+{
+    *newh = malloc(sizeof(list_ele_t));
+    // return false if malloc failed
+    if (*newh == NULL)
+        return false;
+    // copy string content
+    size_t len = strlen(s) +
+                 1;  // count in additional space for c string null terminator
+    // malloc string space
+    (*newh)->value = malloc(len);
+    if ((*newh)->value == NULL) {  // when malloc for string failed
+        // prevent memory leak on failed memory allocation
+        free(*newh);
+        return false;
+    }
+    // copy string content
+    strncpy((*newh)->value, s, len);
+    // initialize fields
+    (*newh)->next = NULL;
+    return true;
+}
+
+
 /*
  * Create empty queue.
  * Return NULL if could not allocate space.
@@ -50,22 +80,10 @@ bool q_insert_head(queue_t *q, char *s)
     // when q is NULL return false
     if (q == NULL)
         return false;
-    newh = malloc(sizeof(list_ele_t));
-    // return false if malloc failed
-    if (newh == NULL)
-        return false;
-    // copy string content
-    size_t len = strlen(s) +
-                 1;  // count in additional space for c string null terminator
-    // malloc string space
-    newh->value = malloc(len);
-    if (newh->value == NULL) {  // when malloc for string failed
-        // prevent memory leak on failed memory allocation
-        free(newh);
+    // handle node creation failed
+    if (!ele_create(&newh, s)) {
         return false;
     }
-    // copy string content
-    strncpy(newh->value, s, len);
     newh->next = q->head;
     q->head = newh;
     // correctly initialize tail when is NULL
@@ -89,34 +107,23 @@ bool q_insert_tail(queue_t *q, char *s)
     // when q is NULL return false
     if (q == NULL)
         return false;
-    newh = malloc(sizeof(list_ele_t));
-    // return false if malloc failed
-    if (newh == NULL)
-        return false;
-    // copy string content
-    size_t len = strlen(s) +
-                 1;  // count in additional space for c string null terminator
-    // malloc string space
-    newh->value = malloc(len);
-    if (newh->value == NULL) {  // when malloc for string failed
-        // prevent memory leak on failed memory allocation
-        free(newh);
+    // if create node fail, return false
+    if (!ele_create(&newh, s)) {
         return false;
     }
-    // copy string content
-    strncpy(newh->value, s, len);
     // concat to existed list
     // prevent empty list
     if (q->tail != NULL) {
+        // concat node to current list
         q->tail->next = newh;
     } else {  // is the first element in list
         q->head = newh;
     }
-    // set tail
+    // set tail to new node
     q->tail = newh;
     // maintain size
     ++(q->size);
-    return false;
+    return true;
 }
 
 /*
