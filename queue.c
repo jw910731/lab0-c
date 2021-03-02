@@ -37,6 +37,8 @@ static inline bool ele_create(list_ele_t **newh, char *s)
 /*
  * Delete a node
  * Passed pointer is advance to next node automatically
+ * Passed pointer must not be null nor pointed to NULL
+ * Otherwise, the result is not guaranteed
  */
 static inline void ele_delete(list_ele_t **del)
 {
@@ -183,8 +185,20 @@ int q_size(queue_t *q)
  */
 void q_reverse(queue_t *q)
 {
-    /* TODO: You need to write the code for this function */
-    /* TODO: Remove the above comment when you are about to implement. */
+    // let the q_size do the null check
+    if (q_size(q) <= 1)
+        return;
+    list_ele_t *prev = NULL, *tail = q->tail;
+    q->tail = q->head;
+    for (list_ele_t *it = q->head; it != NULL;) {
+        // forward iterator temp
+        list_ele_t *tmp = it->next;
+        // reverse linkage
+        it->next = prev;
+        prev = it;  // advance prev
+        it = tmp;   // advance iterator
+    }
+    q->head = tail;
 }
 
 /*
