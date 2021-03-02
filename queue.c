@@ -11,7 +11,7 @@
  * Return false if malloc failed
  * Otherwise return true
  */
-static bool ele_create(list_ele_t **newh, char *s)
+static inline bool ele_create(list_ele_t **newh, char *s)
 {
     *newh = malloc(sizeof(list_ele_t));
     // return false if malloc failed
@@ -34,6 +34,17 @@ static bool ele_create(list_ele_t **newh, char *s)
     return true;
 }
 
+/*
+ * Delete a node
+ * Passed pointer is advance to next node automatically
+ */
+static inline void ele_delete(list_ele_t **del)
+{
+    free((*del)->value);             // free string
+    list_ele_t *tmp = (*del)->next;  // save pointer for next node
+    free(*del);
+    *del = tmp;
+}
 
 /*
  * Create empty queue.
@@ -57,10 +68,7 @@ void q_free(queue_t *q)
     // free iterated through lists
     if (q != NULL) {
         for (list_ele_t *it = q->head; it != NULL;) {
-            free(it->value);             // free string
-            list_ele_t *tmp = it->next;  // save pointer for next node
-            free(it);
-            it = tmp;
+            ele_delete(&it);
         }
     }
     /* Free queue structure */
@@ -136,9 +144,22 @@ bool q_insert_tail(queue_t *q, char *s)
  */
 bool q_remove_head(queue_t *q, char *sp, size_t bufsize)
 {
-    /* TODO: You need to fix up this code. */
-    /* TODO: Remove the above comment when you are about to implement. */
-    q->head = q->head->next;
+    if (q == NULL || q->head == NULL)
+        return false;
+    list_ele_t *tmp = q->head;
+    // copy string
+    if (bufsize > 0 && sp != NULL) {
+        strncpy(sp, tmp->value, bufsize);
+        sp[bufsize - 1] = 0;  // add possible missing terminator
+    }
+    // maintain tail record if needed
+    if (q->tail == tmp) {
+        q->tail = NULL;
+    }
+    // advance head record
+    q->head = tmp->next;
+    --(q->size);
+    ele_delete(&tmp);
     return true;
 }
 
